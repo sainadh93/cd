@@ -1,13 +1,11 @@
 %{
-#include "y.tab.h"
-#include <stdlib.h>
+	#include "y.tab.h"
 %}
-
 %%
-"for"           return FOR;
-[a-zA-Z][a-zA-Z0-9]*   return ID;
-[0-9]+         return NUM;
-"#"            return 0;   // end input
-[\n]        ;
-.              return yytext[0];
+"for" return FOR;
+">"|"<"|">="|"<="|"=="|"!=" return OP;
+[a-zA-Z]* return IDEN;
+[0-9]+ return NUM;
+[\n\t ]  ;
+.   return yytext[0];
 %%
