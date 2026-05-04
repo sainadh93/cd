@@ -1,6 +1,6 @@
 %{
 	#include "y.tab.h"
-	extern yylval;
+	extern YYSTYPE yylval;
 %}
 %%
 [0-9]+	{yylval=atoi(yytext);return NUM;}
