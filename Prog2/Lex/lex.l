@@ -8,8 +8,8 @@ num [0-9]+
 posint \+?{num}
 negint -{num}
 
-posnum \+?{num}\/\+?{num}|-{num}\/-{num}
-negnum -{num}\/\+?{num}|\+?{num}\/-{num}
+posnum \+?{num}\.{num}?|\+?\.{num}
+negnum -{num}\.{num}?|-\.{num}
 
 %%
 
@@ -20,6 +20,12 @@ negnum -{num}\/\+?{num}|\+?{num}\/-{num}
 {posnum} posfrac++;
 
 {negnum} negfrac++;
+
+{posnum}\/{posnum} |
+{negnum}\/{negnum} posfrac++;
+
+{posnum}\/{negnum} |
+{negnum}\/{posnum} negfrac++;
 
 [ \t] ;
 

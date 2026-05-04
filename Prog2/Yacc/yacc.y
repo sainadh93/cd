@@ -1,9 +1,6 @@
 %{
 	#include<stdio.h>
 	#include<stdlib.h>		
-	int yylex();
-	int yyerror();
-	
 %}
 %token NUM
 %left '+' '-'

@@ -3,9 +3,8 @@
 %}
 %%
 "for" return FOR;
-">"|"<"|">="|"<="|"=="|"!=" return OP;
 [a-zA-Z]* return IDEN;
 [0-9]+ return NUM;
-[\n\t ]  ;
+[\n ]  ;
 .   return yytext[0];
 %%

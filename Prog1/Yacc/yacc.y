@@ -1,8 +1,6 @@
 %{
 #include<stdio.h>
 #include<stdlib.h>
-int yyerror();
-int yylex();
 %}
 %%
 S:A B
