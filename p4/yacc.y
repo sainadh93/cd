@@ -1,100 +1,105 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-int yylex();
-int yyerror();
+#include <string.h>
 
-extern FILE *yyin; // optional
+int yylex(void);
+void yyerror(const char *s);
 
+int tempCount = 1;
+int quadIndex = 0;
 
-typedef char *string;
+struct Quad {
+    char op[10];
+    char arg1[20];
+    char arg2[20];
+    char result[20];
+} quad[50];
 
-struct {
-	string res, op1, op2;
-	char op;
-} code[100];
-int idx = -1;
+char* newTemp() {
+    char *temp = (char*)malloc(10);
+    sprintf(temp, "t%d", tempCount++);
+    return temp;
+}
 
-string addToTable(string, string, char);
-void threeAddressCode();
-void quadruples();
+void addQuad(char *op, char *arg1, char *arg2, char *result) {
+    strcpy(quad[quadIndex].op, op);
+    strcpy(quad[quadIndex].arg1, arg1);
+    strcpy(quad[quadIndex].arg2, arg2);
+    strcpy(quad[quadIndex].result, result);
+    quadIndex++;
+}
 %}
 
 %union {
-	char *exp;
+    char str[20];
 }
 
-%token <exp> IDEN NUM
-%type <exp> EXP
+%token <str> ID
+%type <str> E
 
-%right '='
 %left '+' '-'
 %left '*' '/'
 
 %%
+S : ID '=' E ';' {
+        printf("\nThree Address Code:\n");
+        for(int i = 0; i < quadIndex; i++) {
+            printf("%s = %s %s %s\n", quad[i].result, quad[i].arg1, quad[i].op, quad[i].arg2);
+        }
+        printf("%s = %s\n", $1, $3);
 
-STMTS	: STMTS STMT
-	|
-	;
+        printf("\nQuadruples:\n");
+        printf("Op\tArg1\tArg2\tResult\n");
+        for(int i = 0; i < quadIndex; i++) {
+            printf("%s\t%s\t%s\t%s\n", quad[i].op, quad[i].arg1, quad[i].arg2, quad[i].result);
+        }
+        printf("=\t%s\t-\t%s\n", $3, $1);
 
-STMT	: EXP '\n'
-	;
+        printf("\nTriples:\n");
+        printf("Index\tOp\tArg1\tArg2\n");
+        for(int i = 0; i < quadIndex; i++) {
+            printf("%d\t%s\t%s\t%s\n", i, quad[i].op, quad[i].arg1, quad[i].arg2);
+        }
+        printf("%d\t=\t%s\t%s\n", quadIndex, $1, $3);
+    }
+  ;
 
-EXP : IDEN '=' EXP { $$ = addToTable($1, $3, '='); }
-    | EXP '+' EXP { $$ = addToTable($1, $3, '+'); }
-    | EXP '-' EXP { $$ = addToTable($1, $3, '-'); }
-    | EXP '*' EXP { $$ = addToTable($1, $3, '*'); }
-    | EXP '/' EXP { $$ = addToTable($1, $3, '/'); }
-    | '(' EXP ')' { $$ = $2; }
-    | IDEN { $$ = $1; }
-    | NUM { $$ = $1; }
-    ;
-
+E : E '+' E {
+        char *temp = newTemp();
+        addQuad("+", $1, $3, temp);
+        strcpy($$, temp);
+    }
+  | E '-' E {
+        char *temp = newTemp();
+        addQuad("-", $1, $3, temp);
+        strcpy($$, temp);
+    }
+  | E '*' E {
+        char *temp = newTemp();
+        addQuad("*", $1, $3, temp);
+        strcpy($$, temp);
+    }
+  | E '/' E {
+        char *temp = newTemp();
+        addQuad("/", $1, $3, temp);
+        strcpy($$, temp);
+    }
+  | '(' E ')' {
+        strcpy($$, $2);
+    }
+  | ID {
+        strcpy($$, $1);
+    }
+  ;
 %%
 
-int yyerror() {
-	printf("Error");
-	exit(0);
+int main(void) {
+    printf("Enter assignment expression, example: a=b+c*d;\n");
+    yyparse();
+    return 0;
 }
 
-int main() {
-	// yyin = fopen("6.txt", "r"); 
-	// Only if input is given from text file
-	yyparse();
-
-	printf("\nThree address code:\n");
-	threeAddressCode();
-
-	printf("\nQuadruples:\n");
-	quadruples();
-}
-
-
-string addToTable(string op1, string op2, char op) {
-	if(op == '=') {
-		code[idx].res = op1;
-		return op1;
-	}
-
-	idx++;
-	string res = malloc(3);
-	sprintf(res, "@%c", idx + 'A');
-	code[idx].op1 = op1;
-	code[idx].op2 = op2;
-	code[idx].op = op;
-	code[idx].res = res;
-	return res;
-}
-
-void threeAddressCode() {
-	for(int i = 0; i <= idx; i++) {
-		printf("%s = %s %c %s\n", code[i].res, code[i].op1, code[i].op, code[i].op2);
-	}
-}
-
-
-void quadruples() {
-	for(int i = 0; i <= idx; i++) {
-		printf("%d:\t%s\t%s\t%s\t%c\n", i, code[i].res, code[i].op1, code[i].op2, code[i].op);
-	}
+void yyerror(const char *s) {
+    printf("Invalid expression\n");
 }
