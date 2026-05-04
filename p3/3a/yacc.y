@@ -1,74 +1,45 @@
 %{
-    #include <stdio.h>
-    #include <stdlib.h>
-    int total_for_count = 0;      // Total count of for loops
-    int current_nesting = 0;      // Current level of nesting
-    int max_nesting = 0;          // Maximum level of nesting encountered
-    int yylex();
-    int yyerror(const char *s);
+#include <stdio.h>
+#include <stdlib.h>
+int count = 0;
 %}
 
-%token FOR IDEN NUM OP
+%token FOR ID NUM
 
 %%
+S : S STMT
+  | /* empty */
+  ;
 
-STMTS: STMT
-     | STMTS STMT
+STMT : FOR '(' COND ';' COND ';' COND ')' BLOCK   { count++; }
+     | ID ';'
      ;
 
-STMT: FORSTMT                
-    | IDEN '=' EXPR ';'      
-    | IDEN ';'               
-    | '{' STMTS '}'          
-    | ';'                    
-    ;
-
-
-FORSTMT: FOR '(' ASSGN ';' COND ';' ASSGN ')' 
-            {
-                total_for_count++;             
-                current_nesting++;              
-                if (current_nesting > max_nesting) {
-                    max_nesting = current_nesting;  
-                }
-            }
-            STMT
-            {
-                current_nesting--;            
-            }
-            ;
-
-ASSGN: IDEN '=' EXPR
-    | IDEN 
-    |
+BLOCK : '{' S '}'   
+      | STMT        
       ;
 
-COND: IDEN OP IDEN
-     | IDEN OP NUM
-     | IDEN
-     | NUM
+COND : ID
+     | ID '=' ID
+     | ID '=' NUM
+	 | ID '<' NUM
+	 | ID '>' NUM
+     | ID '<' ID
+     | ID '>' ID
+     | ID '<' '=' ID
+     | ID '>' '=' ID
+     | ID '+' '+'
+     | ID '-' '-'
      ;
-
-
-EXPR: IDEN
-     | NUM
-     | IDEN '+' IDEN
-     | IDEN '-' IDEN
-     | IDEN '*' IDEN
-     | IDEN '/' IDEN
-     ;
-
 %%
 
 int main() {
-    printf("Enter the code snippet (Ctrl+D to end input on Unix, Ctrl+Z on Windows):\n");
+    printf("Enter code (end with #):\n");
     yyparse();
-    printf("\nTotal FOR loops: %d\n", total_for_count);
-    printf("Maximum nesting level: %d\n", max_nesting);
-    return 0;
+    printf("For count = %d\n", count);
 }
 
-int yyerror(const char *s) {
-    fprintf(stderr, "Parse error: %s\n", s);
-    exit(1);
+int yyerror() {
+    printf("Invalid input\n");
+    return 0;
 }
